@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790148606945,
+      "tag": "0000_create_shop_inventory_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790419793380,
+      "tag": "0001_auth_roles_credit_offline",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790500697651,
+      "tag": "0002_lock_old_checkout",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790694915786,
+      "tag": "0003_expenses_and_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791040709501,
+      "tag": "0004_platform_admins",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791040720026,
+      "tag": "0005_platform_admin_read_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791041395307,
+      "tag": "0006_multi_shop_subscriptions",
+      "breakpoints": true
+    }
+  ]
+}
