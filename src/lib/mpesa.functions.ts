@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -32,7 +33,7 @@ export const sendStkPush = createServerFn({ method: "POST" })
 
     const ts = new Date(Date.now() + 3 * 3600_000).toISOString().replace(/\D/g, "").slice(0, 14);
     const tokenQ = process.env["MPESA_CALLBACK_TOKEN"] ? `?token=${process.env["MPESA_CALLBACK_TOKEN"]}` : "";
-    const callback = process.env["MPESA_CALLBACK_URL"] ?? `https://shopsplugkenya.lovable.app/api/public/mpesa/callback${tokenQ}`;
+    const callback = process.env["MPESA_CALLBACK_URL"] ?? `${new URL(getRequest().url).origin}/api/public/mpesa/callback${tokenQ}`;
     const res = await fetch(`${base}/mpesa/stkpush/v1/processrequest`, {
       method: "POST",
       headers: { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" },

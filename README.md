@@ -68,6 +68,13 @@ npm run dev
 
 Open the local address shown in the terminal. Camera scanning needs HTTPS or `localhost`, and a browser with camera permission granted.
 
+## Deploy on Vercel
+
+1. Import this repository in Vercel. The framework is detected automatically; the build command is `npm run build`.
+2. Add the variables from `.env.example` under Settings -> Environment Variables.
+3. Apply the SQL files in `drizzle/migrations/` to your Supabase database, in order, using the Supabase SQL Editor.
+4. Set `MPESA_CALLBACK_URL` to `https://<your-domain>/api/public/mpesa/callback` if you use M-Pesa prompts.
+
 ## Author
 
 Built by **Godwin Paschal Mwenda**, Computer Science student at Zetech University.
