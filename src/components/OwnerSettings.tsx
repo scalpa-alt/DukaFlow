@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { sendJoinCodeEmail } from "@/lib/email.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,18 @@ export function OwnerSettings() {
       return (roles ?? []).map((r) => ({ ...r, name: profiles?.find((p) => p.id === r.user_id)?.display_name || "Staff" }));
     },
   });
+  const sendCode = useServerFn(sendJoinCodeEmail);
+  const [emailing, setEmailing] = useState(false);
+  const emailCode = async () => {
+    setEmailing(true);
+    try {
+      const r = await sendCode();
+      if (r.ok) toast.success(r.message); else toast.error(r.message);
+    } catch {
+      toast.error("Could not send the email. Try again.");
+    }
+    setEmailing(false);
+  };
   const [form, setForm] = useState<Settings | null>(null);
   useEffect(() => { if (settings.data) setForm(settings.data); }, [settings.data]);
 
@@ -76,7 +90,8 @@ export function OwnerSettings() {
 
       <section className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-1 font-display text-lg font-semibold">Staff</h2>
-        <p className="mb-3 text-xs text-muted-foreground">New staff create their own account on the sign-in page and join as sellers.</p>
+        <p className="mb-3 text-xs text-muted-foreground">New staff create their own account on the sign-in page, then enter your shop code to join as sellers. The code is sent to your email.</p>
+        <Button size="sm" variant="outline" className="mb-3" disabled={emailing} onClick={() => void emailCode()}>Email me the shop code</Button>
         <ul className="divide-y divide-border text-sm">
           {(staff.data ?? []).map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-2 py-2">
