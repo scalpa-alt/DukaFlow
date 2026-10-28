@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 
+// Each shop has its own settings row, so look it up by the signed-in owner's shop.
+async function myShopId(): Promise<string | null> {
+  const { data } = await supabase.rpc("current_shop_id");
+  return (data as string | null) ?? null;
+}
+
 type Settings = { shop_name: string; enforce_hours: boolean; open_time: string; close_time: string };
 
 export function OwnerSettings() {
@@ -16,7 +22,9 @@ export function OwnerSettings() {
   const settings = useQuery({
     queryKey: ["shop-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("shop_settings").select("*").eq("id", 1).maybeSingle();
+      const shopId = await myShopId();
+      if (!shopId) return null;
+      const { data, error } = await supabase.from("shop_settings").select("*").eq("shop_id", shopId).maybeSingle();
       if (error) throw error;
       return data as Settings | null;
     },
@@ -49,7 +57,9 @@ export function OwnerSettings() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("shop_settings").update(form!).eq("id", 1);
+      const shopId = await myShopId();
+      if (!shopId) throw new Error("You don't belong to a shop yet");
+      const { error } = await supabase.from("shop_settings").update(form!).eq("shop_id", shopId);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Shop settings saved"); qc.invalidateQueries({ queryKey: ["shop-settings"] }); },
