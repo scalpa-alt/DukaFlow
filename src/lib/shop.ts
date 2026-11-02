@@ -22,6 +22,7 @@ export type Sale = {
   item_count: number;
   payment_method: string;
   payment_status: string;
+  amount_paid?: number;
   note: string | null;
   created_at: string;
 };
@@ -356,4 +357,89 @@ export async function saveExpense(e: { id?: string; category: ExpenseCategory; d
 export async function deleteExpense(id: string) {
   const { error } = await supabase.from("expenses").delete().eq("id", id);
   if (error) throw error;
+}
+
+/* ---------- shop details and logo (used on receipts) ---------- */
+
+export type ShopProfile = {
+  id: number; // the shop_settings row
+  shop_id: string;
+  shop_name: string;
+  owner_name: string;
+  contact_phone: string;
+  contact_email: string;
+  address: string;
+  logo_url: string | null;
+  receipt_footer: string;
+};
+
+const PROFILE_COLUMNS = "id,shop_id,shop_name,owner_name,contact_phone,contact_email,address,logo_url,receipt_footer";
+
+/** The signed-in person's own shop details. Sellers can read them too, for receipts. */
+export async function fetchShopProfile(): Promise<ShopProfile | null> {
+  const { data: shopId } = await supabase.rpc("current_shop_id");
+  if (!shopId) return null;
+  const { data, error } = await supabase.from("shop_settings").select(PROFILE_COLUMNS).eq("shop_id", shopId).maybeSingle();
+  if (error) throw error;
+  return (data as ShopProfile | null) ?? null;
+}
+
+export type ShopProfileInput = Pick<ShopProfile, "owner_name" | "contact_phone" | "contact_email" | "address" | "receipt_footer">;
+
+export async function saveShopProfile(settingsId: number, input: ShopProfileInput) {
+  const { error } = await supabase
+    .from("shop_settings")
+    .update({
+      owner_name: input.owner_name.trim(),
+      contact_phone: input.contact_phone.trim(),
+      contact_email: input.contact_email.trim(),
+      address: input.address.trim(),
+      receipt_footer: input.receipt_footer.trim(),
+    })
+    .eq("id", settingsId);
+  if (error) throw error;
+}
+
+/** Shrinks a picked photo to at most 512 px so receipts stay light and quick to load. */
+async function shrinkImage(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("This browser cannot resize pictures");
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  // PNG keeps transparent logos transparent
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("Could not prepare the picture");
+  return blob;
+}
+
+/** Uploads a new logo into this shop's own folder and saves its address on the shop. */
+export async function uploadShopLogo(profile: ShopProfile, file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Please choose a picture (PNG, JPG or WebP)");
+  if (file.size > 10 * 1024 * 1024) throw new Error("That picture is too big. Choose one under 10 MB");
+  const body = await shrinkImage(file);
+
+  const path = `${profile.shop_id}/logo-${Date.now()}.png`;
+  const { error: uploadError } = await supabase.storage.from("shop-logos").upload(path, body, { contentType: "image/png", upsert: true });
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from("shop-logos").getPublicUrl(path);
+  const { error } = await supabase.from("shop_settings").update({ logo_url: data.publicUrl }).eq("id", profile.id);
+  if (error) throw error;
+
+  // Tidy up the previous picture, if there was one (a failure here does not matter)
+  const old = profile.logo_url?.split("/shop-logos/")[1];
+  if (old) void supabase.storage.from("shop-logos").remove([decodeURIComponent(old)]);
+  return data.publicUrl;
+}
+
+export async function removeShopLogo(profile: ShopProfile) {
+  const { error } = await supabase.from("shop_settings").update({ logo_url: null }).eq("id", profile.id);
+  if (error) throw error;
+  const old = profile.logo_url?.split("/shop-logos/")[1];
+  if (old) void supabase.storage.from("shop-logos").remove([decodeURIComponent(old)]);
 }

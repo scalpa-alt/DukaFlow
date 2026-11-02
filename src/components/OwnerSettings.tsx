@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Mail, UserMinus } from "lucide-react";
 import { Button, Input } from "@/components/ui";
+import { ShopProfileForm } from "@/components/ShopProfileForm";
 import { postApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -111,6 +112,8 @@ export function OwnerSettings() {
 
   return (
     <div className="space-y-4">
+      <ShopProfileForm />
+
       <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
         <h2 className="font-display text-lg font-semibold">Shop</h2>
         {settings.isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}

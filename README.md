@@ -9,7 +9,7 @@ Built with Next.js (App Router), React, Tailwind CSS and Supabase. Hosted on Ver
 | Role | Can do |
 | --- | --- |
 | Seller | Sell, see stock and alerts, add customers, record debt repayments, see sales reports |
-| Owner | Everything a seller can, plus edit stock and prices, expenses, net profit, shop settings, staff, shop code |
+| Owner | Everything a seller can, plus edit stock and prices, expenses, net profit, shop settings, receipt details and logo, staff, shop code |
 | Platform admin | Sees every shop, owner and seller, and can change roles or remove staff (`/admin`) |
 
 Each shop is separate. Data is protected by Row Level Security in the database. There are no subscriptions.
@@ -44,6 +44,10 @@ npm install
 cp .env.example .env.local   # then fill in the values
 npm run dev
 ```
+
+## Receipts
+
+After a sale, tap **View receipt**. It shows the shop's logo, name, address, phone, email and owner name, the items, total and payment, and can be printed or shared on WhatsApp. Owners set these details in **Settings → Receipt details**. Logos are stored in the `shop-logos` Supabase Storage bucket, which `database/full_setup.sql` creates.
 
 ## How a new shop starts
 

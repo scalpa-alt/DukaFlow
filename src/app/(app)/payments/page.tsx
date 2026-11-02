@@ -70,7 +70,12 @@ function Payments() {
           {current.isLoading ? <p className="text-muted-foreground">Loading sale…</p> : null}
           {!current.isLoading && !sale ? <p className="text-muted-foreground">Sale not found.</p> : null}
           {sale ? <SaleStatus sale={sale} items={current.data?.items.length ?? 0} /> : null}
-          <Link href="/" className={buttonClass("default", "default", "mt-4 w-full")}>
+          {sale ? (
+            <Link href={`/receipt?sale=${sale.id}`} className={buttonClass("secondary", "default", "mt-4 w-full")}>
+              View receipt
+            </Link>
+          ) : null}
+          <Link href="/" className={buttonClass("default", "default", "mt-2 w-full")}>
             New sale
           </Link>
         </section>

@@ -27,7 +27,7 @@ export function BottomNav({ alertCount = 0, adminOnly = false }: { alertCount?: 
   const tabs = adminOnly ? adminTabs : shopTabs;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <nav className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <ul className="mx-auto flex max-w-2xl items-stretch">
         {tabs.map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
