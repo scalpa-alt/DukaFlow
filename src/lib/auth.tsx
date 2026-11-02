@@ -75,8 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       // Run outside the callback: calling Supabase from inside it can hang.
+      // Keep the loading screen up until the role and admin check are known, so a platform admin
+      // never sees the "create or join a shop" screen for a moment.
+      setLoading(true);
       setTimeout(() => {
-        void loadRole(next).then(() => queryClient.invalidateQueries());
+        void loadRole(next)
+          .catch(() => undefined)
+          .then(() => queryClient.invalidateQueries())
+          .finally(() => setLoading(false));
       }, 0);
     });
 

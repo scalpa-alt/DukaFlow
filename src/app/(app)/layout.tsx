@@ -30,10 +30,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     refetchInterval: 60_000,
   });
 
-  // A platform admin without a shop of their own lands on the admin page
+  // A platform admin does not need a shop. Without one, only the admin page and settings make sense.
+  const adminOnly = !hasShop && isPlatformAdmin;
   useEffect(() => {
-    if (!loading && session && !hasShop && isPlatformAdmin && pathname === "/") router.replace("/admin");
-  }, [loading, session, hasShop, isPlatformAdmin, pathname, router]);
+    if (!loading && session && adminOnly && pathname !== "/admin" && pathname !== "/settings") router.replace("/admin");
+  }, [loading, session, adminOnly, pathname, router]);
 
   // Make the app installable and let it open offline
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto min-h-screen max-w-2xl pb-20">
       {children}
-      <BottomNav alertCount={alerts.data ?? 0} adminOnly={!hasShop} />
+      <BottomNav alertCount={alerts.data ?? 0} adminOnly={adminOnly} />
     </div>
   );
 }
