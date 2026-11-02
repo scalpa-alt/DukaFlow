@@ -1,8 +1,8 @@
 /* DukaFlow service worker.
    Keeps the app shell on the phone so an installed DukaFlow opens fast and works offline.
    Sales made offline are queued by the app itself and sent when the connection returns. */
-const CACHE = "dukaflow-v2";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE = "dukaflow-v3";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png", "/icons/apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP_SHELL)).then(() => self.skipWaiting()));

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight, LogOut, ReceiptText, ShieldCheck } from "lucide-react";
+import { InstallRow } from "@/components/InstallApp";
 import { OwnerSettings } from "@/components/OwnerSettings";
 import { Button, cn } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
@@ -35,6 +36,8 @@ export default function SettingsPage() {
           <Segmented options={themes.map((k) => [k, t(k)] as [ThemePref, string])} value={theme} onChange={setTheme} />
         </div>
       </section>
+
+      <InstallRow />
 
       {isPlatformAdmin ? (
         <NavRow href="/admin" icon={<ShieldCheck className="size-5 text-primary" />} label="Platform admin" hint="Every shop, owner and seller" />

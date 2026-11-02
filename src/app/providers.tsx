@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth";
+import { InstallProvider } from "@/lib/install";
 import { PrefsProvider } from "@/lib/prefs";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -13,10 +14,12 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <PrefsProvider>
-        <AuthProvider>
-          {children}
-          <Toaster position="top-center" richColors />
-        </AuthProvider>
+        <InstallProvider>
+          <AuthProvider>
+            {children}
+            <Toaster position="top-center" richColors />
+          </AuthProvider>
+        </InstallProvider>
       </PrefsProvider>
     </QueryClientProvider>
   );

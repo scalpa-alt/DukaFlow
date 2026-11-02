@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   title: "DukaFlow — Shop stock & sales",
   description: "Scan barcodes, sell fast, track stock and see daily sales for your shop.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/favicon.png", apple: "/icons/icon-192.png" },
+  icons: { icon: "/favicon.png", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "DukaFlow", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

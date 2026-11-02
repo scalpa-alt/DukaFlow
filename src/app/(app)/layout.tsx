@@ -10,6 +10,7 @@ import { fetchProducts, stockStatus } from "@/lib/shop";
 import { SignIn } from "@/components/SignIn";
 import { ShopSetup } from "@/components/ShopSetup";
 import { BottomNav } from "@/components/BottomNav";
+import { InstallBanner } from "@/components/InstallApp";
 
 /**
  * Wraps every signed-in screen. It decides what to show:
@@ -68,6 +69,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl pb-20">
+      <InstallBanner />
       {children}
       <BottomNav alertCount={alerts.data ?? 0} adminOnly={adminOnly} />
     </div>

@@ -45,6 +45,10 @@ cp .env.example .env.local   # then fill in the values
 npm run dev
 ```
 
+## Install on a phone or computer
+
+Open the site in Chrome, Edge or Safari. An **Install** bar appears at the top (and always in Settings → Install the app). On iPhone, tap Share then **Add to Home Screen**. Once installed it opens full screen and keeps working offline; sales made without internet are sent when the connection returns. The install needs the site to be served over HTTPS, which Vercel does.
+
 ## Receipts
 
 After a sale, tap **View receipt**. It shows the shop's logo, name, address, phone, email and owner name, the items, total and payment, and can be printed or shared on WhatsApp. Owners set these details in **Settings → Receipt details**. Logos are stored in the `shop-logos` Supabase Storage bucket, which `database/full_setup.sql` creates.
