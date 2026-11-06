@@ -55,7 +55,7 @@ After a sale, tap **View receipt**. It shows the shop's logo, name, address, pho
 
 ## How a new shop starts
 
-1. The owner signs up, chooses **Create a shop** and gets a join code like `MAMA-4821`. It is emailed to them.
+1. The owner signs up and fills in the shop form: logo (optional), shop name, owner's name, phone, email, address and a receipt message. These details appear on every receipt and can be edited later in Settings → Receipt details. A join code like `MAMA-4821` is emailed to them.
 2. Sellers sign up, choose **Join a shop** and type the code.
 
 ## Project layout
