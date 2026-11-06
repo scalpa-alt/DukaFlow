@@ -1,0 +1,23 @@
+# dependencies and build output
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+
+# logs
+logs
+*.log
+npm-debug.log*
+
+# secrets: keep them in Vercel, never in git
+.env
+.env.*
+!.env.example
+
+# tooling
+.vercel
+.DS_Store
+.idea
+.vscode/*
+!.vscode/extensions.json
