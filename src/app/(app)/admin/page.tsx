@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Store, UserMinus } from "lucide-react";
+import { Ban, ChevronDown, ChevronUp, ShieldCheck, Store, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { usePrefs } from "@/lib/prefs";
@@ -20,6 +20,8 @@ type AdminShop = {
   product_count: number;
   sales_30d: number;
   last_sale_at: string | null;
+  blocked: boolean;
+  blocked_reason: string;
 };
 
 type AdminStaff = { role_id: string; user_id: string; email: string | null; display_name: string | null; role: "owner" | "seller" };
@@ -48,7 +50,31 @@ function AdminShops() {
     },
   });
 
+  const queryClient = useQueryClient();
+  const setBlocked = useMutation({
+    mutationFn: async ({ shop, blocked, reason }: { shop: string; blocked: boolean; reason: string }) => {
+      const { error } = await supabase.rpc("admin_set_shop_blocked", { p_shop: shop, p_blocked: blocked, p_reason: reason });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.blocked ? "Shop blocked. Its owner and staff can no longer use the app." : "Shop unblocked");
+      void queryClient.invalidateQueries({ queryKey: ["admin-shops"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleBlock = (s: AdminShop) => {
+    if (s.blocked) {
+      if (window.confirm(`Unblock ${s.name}? Its people can use the app again.`)) setBlocked.mutate({ shop: s.id, blocked: false, reason: "" });
+      return;
+    }
+    const reason = window.prompt(`Block ${s.name}? Its owner and staff will be locked out.\n\nReason (they will see this):`, "");
+    if (reason === null) return; // cancelled
+    setBlocked.mutate({ shop: s.id, blocked: true, reason });
+  };
+
   const list = shops.data ?? [];
+  const blockedCount = list.filter((s) => s.blocked).length;
   const totalSales = list.reduce((sum, s) => sum + Number(s.sales_30d), 0);
 
   return (
@@ -58,13 +84,17 @@ function AdminShops() {
         <p className="text-sm text-muted-foreground">{session?.user.email}</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-border bg-card p-3">
           <div className="text-xs text-muted-foreground">Shops</div>
           <div className="font-display text-xl font-bold">{list.length}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-3">
-          <div className="text-xs text-muted-foreground">Sales, last 30 days</div>
+          <div className="text-xs text-muted-foreground">Blocked</div>
+          <div className="font-display text-xl font-bold">{blockedCount}</div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-3">
+          <div className="text-xs text-muted-foreground">Sales, 30 days</div>
           <div className="font-display text-xl font-bold">{formatMoney(totalSales)}</div>
         </div>
       </div>
@@ -75,11 +105,14 @@ function AdminShops() {
 
       <ul className="space-y-3">
         {list.map((s) => (
-          <li key={s.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <li key={s.id} className={`rounded-2xl border bg-card p-4 shadow-sm ${s.blocked ? "border-destructive/50" : "border-border"}`}>
             <button type="button" className="flex w-full items-start gap-3 text-left" onClick={() => setOpenShop(openShop === s.id ? null : s.id)}>
               <Store className="mt-0.5 size-5 shrink-0 text-primary" />
               <span className="min-w-0 flex-1">
-                <span className="block font-display text-base font-semibold">{s.name}</span>
+                <span className="block font-display text-base font-semibold">
+                  {s.name}
+                  {s.blocked ? <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 align-middle text-xs font-medium text-destructive">Blocked</span> : null}
+                </span>
                 <span className="block truncate text-sm text-muted-foreground">{s.owner_email ?? "No owner"}</span>
                 <span className="mt-1 block text-xs text-muted-foreground">
                   Code <b className="tracking-wider text-foreground">{s.join_code}</b> · {s.staff_count} staff · {s.product_count} products
@@ -90,6 +123,17 @@ function AdminShops() {
               </span>
               {openShop === s.id ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
             </button>
+            {s.blocked && s.blocked_reason ? <p className="mt-2 text-xs text-destructive">Reason: {s.blocked_reason}</p> : null}
+            <Button
+              size="sm"
+              variant={s.blocked ? "secondary" : "outline"}
+              className={`mt-3 w-full ${s.blocked ? "" : "text-destructive"}`}
+              disabled={setBlocked.isPending}
+              onClick={() => toggleBlock(s)}
+            >
+              {s.blocked ? <ShieldCheck className="mr-2 size-4" /> : <Ban className="mr-2 size-4" />}
+              {s.blocked ? "Unblock shop" : "Block shop"}
+            </Button>
             {openShop === s.id ? <StaffList shopId={s.id} /> : null}
           </li>
         ))}

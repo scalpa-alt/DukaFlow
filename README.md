@@ -10,9 +10,11 @@ Built with Next.js (App Router), React, Tailwind CSS and Supabase. Hosted on Ver
 | --- | --- |
 | Seller | Sell, see stock and alerts, add customers, record debt repayments, see sales reports |
 | Owner | Everything a seller can, plus edit stock and prices, expenses, net profit, shop settings, receipt details and logo, staff, shop code |
-| Platform admin | Sees every shop, owner and seller, and can change roles or remove staff (`/admin`) |
+| Platform admin | Sees every shop, owner and seller, can change roles, remove staff, and **block or unblock a whole shop** (`/admin`) |
 
 Each shop is separate. Data is protected by Row Level Security in the database. There are no subscriptions.
+
+**Blocking a shop:** in `/admin`, tap **Block shop** on any shop and give a reason. Its owner and staff then see a "Shop access blocked" screen, and the database returns none of the shop's data to them. Tap **Unblock shop** to restore access. This needs `database/migrations/0010_block_shops.sql` (already part of `full_setup.sql`).
 
 ## 1. Set up Supabase
 

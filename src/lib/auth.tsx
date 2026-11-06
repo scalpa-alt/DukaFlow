@@ -13,6 +13,7 @@ type AuthContext = {
   loading: boolean;
   isOwner: boolean;
   isPlatformAdmin: boolean;
+  blocked: { reason: string; shopName: string } | null; // set when the platform admin has blocked this person's shop
   signOut: () => Promise<void>;
   refresh: () => Promise<void>; // re-check the role after creating or joining a shop
 };
@@ -25,11 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [blocked, setBlocked] = useState<{ reason: string; shopName: string } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loadBlocked = useCallback(async () => {
+    const { data, error } = await supabase.rpc("my_shop_status");
+    if (error) return; // offline or not set up yet: keep what we knew
+    const row = (data as { blocked: boolean; reason: string; shop_name: string }[] | null)?.[0];
+    setBlocked(row?.blocked ? { reason: row.reason ?? "", shopName: row.shop_name ?? "" } : null);
+  }, []);
 
   const loadRole = useCallback(async (s: Session | null) => {
     if (!s) {
       setRole(null);
+      setBlocked(null);
       setIsPlatformAdmin(false);
       return;
     }
@@ -53,7 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", s.user.id)
       .maybeSingle();
     setIsPlatformAdmin(Boolean(adminRow));
-  }, []);
+    await loadBlocked();
+  }, [loadBlocked]);
 
   useEffect(() => {
     let alive = true;
@@ -70,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === "SIGNED_OUT") {
         localStorage.removeItem(ROLE_KEY);
         setRole(null);
+        setBlocked(null);
         setIsPlatformAdmin(false);
         queryClient.clear();
         return;
@@ -92,6 +104,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [loadRole, queryClient]);
 
+  // Notice a block (or an unblock) while the app is open
+  useEffect(() => {
+    if (!session) return;
+    const id = setInterval(() => void loadBlocked(), 60_000);
+    const onFocus = () => void loadBlocked();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [session, loadBlocked]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -103,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ session, role, loading, isOwner: role === "owner", isPlatformAdmin, signOut, refresh }}>
+    <Ctx.Provider value={{ session, role, loading, isOwner: role === "owner", isPlatformAdmin, blocked, signOut, refresh }}>
       {children}
     </Ctx.Provider>
   );

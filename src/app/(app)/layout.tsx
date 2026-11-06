@@ -9,6 +9,7 @@ import { getQueue, syncQueue } from "@/lib/offline";
 import { fetchProducts, stockStatus } from "@/lib/shop";
 import { SignIn } from "@/components/SignIn";
 import { ShopSetup } from "@/components/ShopSetup";
+import { ShopBlocked } from "@/components/ShopBlocked";
 import { BottomNav } from "@/components/BottomNav";
 import { InstallBanner } from "@/components/InstallApp";
 
@@ -17,7 +18,7 @@ import { InstallBanner } from "@/components/InstallApp";
  * not signed in -> sign-in form, no shop yet -> shop setup, otherwise the page with the bottom menu.
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { session, role, loading, isPlatformAdmin } = useAuth();
+  const { session, role, loading, isPlatformAdmin, blocked } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   // Number on the bell icon: items that are low or out of stock
   const alerts = useQuery({
     queryKey: ["alert-count"],
-    enabled: Boolean(session) && hasShop,
+    enabled: Boolean(session) && hasShop && !blocked,
     queryFn: async () => (await fetchProducts()).filter((p) => stockStatus(p) !== "ok").length,
     refetchInterval: 60_000,
   });
@@ -65,6 +66,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
   if (!session) return <SignIn />;
+  if (blocked && !isPlatformAdmin) return <ShopBlocked />;
   if (!hasShop && !isPlatformAdmin) return <ShopSetup />;
 
   return (
